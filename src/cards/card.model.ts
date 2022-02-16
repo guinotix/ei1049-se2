@@ -1,7 +1,7 @@
 export class Card {
   constructor(
     public name: string,
-    public copes: number,
+    public copies: number,
   ) {};
 }
 
