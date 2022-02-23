@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from "@nestjs/common";
 import { CardsService } from "./cards.service";
+import { Card } from "./card.model";
 
 @Controller('cards')
 export class CardsController {
@@ -7,15 +8,17 @@ export class CardsController {
   constructor(private cardsService: CardsService) {}
 
   @Post()
-  addCard(@Body('name') cardName: string,
+  async addCard(@Body('name') cardName: string,
           @Body('copies') cardCopies: number
-  ): {name: string, copies: number} {
-    return this.cardsService.insertCard(cardName, cardCopies);
+  ) {
+    const generatedCard = await this.cardsService.insertCard(cardName, cardCopies);
+    return { name: generatedCard };
   }
 
   @Get()
-  getCards() {
-    return this.cardsService.getCards();
+  async getCards() {
+    const cards = await this.cardsService.getCards();
+    return cards;
   }
 
   @Get(':name')
@@ -24,16 +27,16 @@ export class CardsController {
   }
 
   @Patch(':name')
-  updateCopies(
+  async updateCopies(
     @Param('name') cardName: string,
     @Body('copies') newCopies: number
   ) {
-    this.cardsService.updateCopies(cardName, newCopies);
+    await this.cardsService.updateCopies(cardName, newCopies);
   }
 
   @Delete(':name')
-  removeCard(@Param('name') cardName: string) {
-    this.cardsService.removeCard(cardName);
+  async removeCard(@Param('name') cardName: string) {
+    await this.cardsService.removeCard(cardName);
   }
 }
 

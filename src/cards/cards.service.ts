@@ -1,48 +1,72 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+
 import { Card } from './card.model';
 
 @Injectable()
 export class CardsService {
 
-  private cards: Card[] = [];
+  // private cards: Card[] = [];
 
-  insertCard(name: string, copies: number) {
-    const newCard = new Card(name, copies);
-    this.cards.push(newCard);
-    return {name: name, copies: copies};
+  constructor(@InjectModel('Card') private readonly cardModel: Model<Card>) {
   }
 
-  getCards() {
-    return this.cards.slice();
+  async insertCard(name: string, copies: number) {
+    // const newCard = new Card(name, copies);
+    const newCard = new this.cardModel({
+      name: name,
+      copies: copies
+    });
+    // this.cards.push(newCard);
+    const result = await newCard.save();
+    console.log(result);
+
+    return result.name as string;
   }
 
-  getCard(name: string): Card {
-    return this.findCard(name)[0];
+  async getCards() {
+    const cards = await this.cardModel.find().exec();
+    return cards.map((card) => ({
+      name: card.name,
+      copies: card.copies
+    }));
+    // return this.cards.slice();
   }
 
-  updateCopies(name: string, copies: number) {
-    const [card, index] = this.findCard(name);
-    const cartaActualizada = {...card}; // Copia de la carta a actualizar
+  async getCard(name: string) {
+    const card = await this.findCard(name);
+    return card;
+  }
+
+  async updateCopies(name: string, copies: number) {
+    const card = await this.findCard(name);
     if (copies >= 0) {
-      cartaActualizada.copies = copies;
+      card.copies = copies;
     }
-    this.cards[index] = cartaActualizada;
+    card.save();
   }
 
-  removeCard(name: string) {
-    const [_, index] = this.findCard(name); // Solo queremos el index
-    this.cards.splice(index, 1);
+  // Modificar para que muestre por consola que se borra el elemento.
+  async removeCard(name: string) {
+    const result = await this.cardModel.deleteOne({name: name}).exec();
+    if (result.deletedCount === 0) {
+      throw new NotFoundException();
+    }
+    console.log(result);
   }
 
-  private findCard(name: string): [Card, number] {
-    const index = this.cards.findIndex(
-      (cardToSearch) => cardToSearch.name === name
-    );
-    const card = this.cards[index];
+  private async findCard(name: string): Promise<Card> {
+    let card;
+    try {
+      card = await this.cardModel.findById(name).exec();
+    } catch (e) {
+      throw new NotFoundException();
+    }
     if (!card) {
       throw new NotFoundException();
     }
-    return [card, index];
+    return card;
   }
 }
 

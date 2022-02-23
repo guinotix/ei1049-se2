@@ -1,8 +1,17 @@
 import { Module } from "@nestjs/common";
+import { MongooseModule } from "@nestjs/mongoose";
+
 import { CardsController } from "./cards.controller";
 import { CardsService } from "./cards.service";
+import { CardSchema } from "./card.model";
 
 @Module({
+  // Inyecta este modelo donde queramos en la aplicación
+  imports: [
+    MongooseModule.forFeature([
+      {name: 'Card', schema: CardSchema}
+    ])
+  ],
   controllers: [CardsController],
   providers: [CardsService]
 })
