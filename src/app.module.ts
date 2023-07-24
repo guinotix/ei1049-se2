@@ -8,9 +8,7 @@ import { CardsModule } from './cards/cards.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(
-      { envFilePath: `access_db.env` }
-    ),
+    ConfigModule.forRoot(),
     CardsModule,
     // Definir la URI desde MongoDB e introducirla. Esconder nombres y pass con
     // variables de entorno
